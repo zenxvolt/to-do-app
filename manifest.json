@@ -1,6 +1,6 @@
 {
   "short_name": "TodoApp",
-  "name": "To-Do App PWA",
+  "name": "To Do List",
   "icons": [
     {
       "src": "icons/icon-192x192.png",
