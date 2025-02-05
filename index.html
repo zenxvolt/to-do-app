@@ -86,7 +86,8 @@
       transition: background 0.3s ease;
     }
 
-    #todo-list li.completed {
+    /* Hanya elemen <span> di dalam li yang selesai yang mendapatkan strike-through */
+    #todo-list li.completed > span {
       text-decoration: line-through;
       opacity: 0.6;
     }
@@ -149,7 +150,11 @@
         todoList.innerHTML = '';
         todos.forEach((todo, index) => {
           const li = document.createElement('li');
-          li.className = todo.completed ? 'completed' : '';
+          // Tetap menambahkan kelas 'completed' pada li untuk logika JavaScript,
+          // namun gaya strike-through hanya diterapkan pada <span> di dalamnya
+          if (todo.completed) {
+            li.classList.add('completed');
+          }
           li.innerHTML = `
             <span>${todo.text}</span>
             <div>
