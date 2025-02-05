@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>To-Do App PWA</title>
+  <!-- Link ke manifest untuk PWA -->
+  <link rel="manifest" href="manifest.json">
+  <style>
+    /* Reset dasar */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Arial', sans-serif;
+      background: #f2f2f2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    /* Container utama */
+    .container {
+      width: 100%;
+      max-width: 500px;
+      background: #ffffff;
+      padding: 20px 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Judul */
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    /* Input dan tombol tambah */
+    .input-container {
+      display: flex;
+      margin-bottom: 20px;
+    }
+
+    #todo-input {
+      flex: 1;
+      padding: 10px;
+      border: 2px solid #007bff;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+
+    #add-btn {
+      padding: 10px 20px;
+      margin-left: 10px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s ease;
+    }
+
+    #add-btn:hover {
+      background-color: #0056b3;
+    }
+
+    /* Daftar To-Do */
+    #todo-list {
+      list-style: none;
+    }
+
+    #todo-list li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #e9ecef;
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      transition: background 0.3s ease;
+    }
+
+    #todo-list li.completed {
+      text-decoration: line-through;
+      opacity: 0.6;
+    }
+
+    /* Tombol aksi */
+    .btn-complete, .btn-delete {
+      border: none;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-left: 5px;
+    }
+
+    .btn-complete {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .btn-complete:hover {
+      background-color: #218838;
+    }
+
+    .btn-delete {
+      background-color: #dc3545;
+      color: white;
+    }
+
+    .btn-delete:hover {
+      background-color: #c82333;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>To-Do List</h1>
+    <div class="input-container">
+      <input type="text" id="todo-input" placeholder="Tambahkan tugas baru...">
+      <button id="add-btn">Tambah</button>
+    </div>
+    <ul id="todo-list"></ul>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const todoInput = document.getElementById('todo-input');
+      const addBtn = document.getElementById('add-btn');
+      const todoList = document.getElementById('todo-list');
+
+      // Mengambil data todo dari localStorage (jika ada)
+      let todos = JSON.parse(localStorage.getItem('todos')) || [];
+
+      // Fungsi untuk menyimpan todo ke localStorage
+      function saveTodos() {
+        localStorage.setItem('todos', JSON.stringify(todos));
+      }
+
+      // Fungsi untuk merender daftar todo
+      function renderTodos() {
+        todoList.innerHTML = '';
+        todos.forEach((todo, index) => {
+          const li = document.createElement('li');
+          li.className = todo.completed ? 'completed' : '';
+          li.innerHTML = `
+            <span>${todo.text}</span>
+            <div>
+              <button class="btn-complete" data-index="${index}">
+                ${todo.completed ? 'Undo' : 'Done'}
+              </button>
+              <button class="btn-delete" data-index="${index}">Hapus</button>
+            </div>
+          `;
+          todoList.appendChild(li);
+        });
+      }
+
+      // Fungsi untuk menambahkan todo baru
+      function addTodo() {
+        const text = todoInput.value.trim();
+        if (text !== '') {
+          todos.push({ text: text, completed: false });
+          todoInput.value = '';
+          saveTodos();
+          renderTodos();
+        }
+      }
+
+      // Event listener untuk tombol tambah
+      addBtn.addEventListener('click', addTodo);
+
+      // Menambahkan todo dengan tombol Enter
+      todoInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          addTodo();
+        }
+      });
+
+      // Event listener untuk tombol selesai dan hapus pada setiap todo
+      todoList.addEventListener('click', (e) => {
+        const index = e.target.getAttribute('data-index');
+        if (e.target.classList.contains('btn-delete')) {
+          todos.splice(index, 1);
+          saveTodos();
+          renderTodos();
+        } else if (e.target.classList.contains('btn-complete')) {
+          todos[index].completed = !todos[index].completed;
+          saveTodos();
+          renderTodos();
+        }
+      });
+
+      // Render todo pada saat halaman pertama kali dimuat
+      renderTodos();
+    });
+
+    // Registrasi Service Worker untuk PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('service-worker.js')
+          .then(function(registration) {
+            console.log('ServiceWorker berhasil terdaftar dengan scope:', registration.scope);
+          })
+          .catch(function(err) {
+            console.log('ServiceWorker gagal terdaftar:', err);
+          });
+      });
+    }
+  </script>
+</body>
+</html>
